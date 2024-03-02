@@ -1,5 +1,6 @@
 import numpy as np
 
-matrix = np.zeros((10, 5))
+def create_matrix(rows: int, cols: int):
+    return np.zeros((rows, cols))
 
-print(matrix)
+print(create_matrix(12, 5))
