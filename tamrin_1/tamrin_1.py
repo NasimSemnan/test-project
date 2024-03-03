@@ -14,4 +14,6 @@ def sum_min_max(lst):
 
 
 my_list = [5, 10, 2, 1]
+my_list2 = [11, 15, 5, 6, 3]
 print(sum_min_max(my_list))
+print(sum_min_max(my_list2))
