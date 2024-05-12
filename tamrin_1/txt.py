@@ -1,9 +1,8 @@
-def replace_text(n):
-    vowels = "aeiouAEIOU"
-    for chrachter in n:
-        if chrachter in vowels:
-            n = n.replace(chrachter, "!")
-    return n
+txt = "salam  bache   ha chtorin"
+char = " "
+count = txt.count(char)
+x = txt.replace(" ", "_")
 
 
-print(replace_text("aeion"))
+print(x)
+print(f"the charachter '{char}' chandta {count} in the string")
