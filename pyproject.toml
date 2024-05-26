@@ -4,6 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["nasimm <nasiim.sem@gmail.com>"]
 readme = "README.md"
+packages = [
+    { include = "tamrin_1" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
