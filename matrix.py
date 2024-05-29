@@ -31,9 +31,19 @@ class MatrixGenerator:
     def add_matrix_from_csv(self, path: str):
         with open(path, "r") as file:
             reader = csv.reader(file)
-            # for max_row in reader:
-            # print([int(r) for r in max_row])
-            data = [float(max_row) for max_row in reader]
+
+            # 1st method
+            # data = []
+            # for reader_row in reader:
+            #     row = []
+            #     for reader_col in reader_row:
+            #         row.append(float(reader_col))
+
+            #     data.append(row)
+
+            # 2nd method
+            data = [(float(col) for col in row) for row in reader]
+
             instance = Matrix(data)
             self.items.append(instance)
 
@@ -61,7 +71,7 @@ class MatrixGenerator:
 
 generator = MatrixGenerator()
 while True:
-    nam = input("Harf vard kon A,AF,P,Q,C,R:\n")
+    nam = input("Harf vard kon a, af, p, q, c, r:\n")
 
     if nam == "a":
         generator.add_matrix()
