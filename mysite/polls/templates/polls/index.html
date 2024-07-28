@@ -1,0 +1,36 @@
+{% extends "polls/base.html" %}
+
+{% block content %}
+
+{% if latest_question_list %}
+    <table class="table table-striped ">
+        <thead>
+            <h3>
+                Question list
+                <a href="/polls:add_question" class="btn btn-success" >
+                    <i class="fas fa-plus"></i></a></h3>
+            <tr>
+                <th>ID</th>
+                <th>Question</th>
+                <th>Number of Answers</th>
+                <th> Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in latest_question_list %}
+                <tr>
+                    <td>{{ question.id }}</td>
+                    <td><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></td>
+                    <td>{{ question.choice_set.count }} </td> <!-- تعداد جواب‌ها -->
+                    <td> <button class="btn btn-primary"><i class="fa fa-edit"></i></button>
+                     <button class="btn btn-danger"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
+{% load static %}
+<!-- <link rel="stylesheet" href="{% static 'polls/style.css' %}"> -->
+{% endblock %}
