@@ -1,5 +1,7 @@
+from typing import Any
 from django.db.models import F
-from django.http import HttpResponseRedirect
+from django.forms import BaseModelForm
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
@@ -26,10 +28,20 @@ from .models import Choice, Question
 #         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
-class AddQuession(generic.AddQuession):
+class AddQuession(generic.CreateView):
     model = Question
     template_name = "polls/add_question.html"
+    fields = ["question_text", "pub_date"]
 
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        print("valid", form.data)
+
+        return super().form_valid(form)
+    
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+        print("invalid", form.data)
+        
+        return super().form_invalid(form)
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
