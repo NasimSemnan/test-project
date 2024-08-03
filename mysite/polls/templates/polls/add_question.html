@@ -1,39 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADD Questions</title>
-</head>
-<body>
-    <div class="container mt-5">
-        <h2>ADD Questions</h2>
-        <form id="questionForm">
-            <div class="form-group">
-                <label for="date">date:</label>
-                <input type="date" class="form-control" id="date" required>
+{% extends "polls/base.html" %}
+{% block content %}
+
+<h3 class="mb-3">Add a new Question</h3>
+
+<form method="post">{% csrf_token %}
+    <div class="form-group">
+        <label for="{{ form.question_text.id_for_label }}">{{ form.question_text.label }}</label>
+        <input type="text" id="{{ form.question_text.id_for_label }}" class="form-control" name="{{ form.question_text.name }}" />
+        <small id="emailHelp" class="form-text text-muted">This is the Question's title that will be shown to the end users!</small>
+        <ul class="text-danger list-unstyled">
+            {% for error in form.question_text.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+
+
+     <div class="form-group">
+        <label for="{{ form.pub_date.id_for_label }}">{{ form.pub_date.label }}</label>
+        <input type="date" id="{{ form.pub_date.id_for_label }}" class="form-control" name="{{ form.pub_date.name }}" />
             </div>
-            <div class="form-group">
-                <label for="time">time:</label>
-                <input type="time" class="form-control" id="time" required>
-            </div>
-            <div class="form-group">
-                <label for="questionText">text:</label>
-                <input type="text" class="form-control" id="questionText" placeholder="سوال خود را اینجا بنویسید" required>
-            </div>
-            <div id="choicesContainer">
-                <div class="form-group">
-                    <label for="choiceText">text choice</label>
-                    <input type="text" class="form-control" name="choiceText" placeholder="گزینه را وارد کنید" required>
-                </div>
-                <div class="form-group">
-                    <label>تعداد رای:</label>
-                    <input type="number" class="form-control" name="votes" value="0" readonly>
-                </div>
-            </div>
-            <button type="button" class="btn btn-secondary" id="addChoiceButton">add choice</button>
-            <button type="submit" class="btn btn-primary mt-3">submit</button>
-        </form>
+            
+        </ul>
     </div>
 </body>
 </html>
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Create</button>
+    </div>
+</form>
+{% endblock %}

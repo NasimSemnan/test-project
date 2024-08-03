@@ -2,18 +2,21 @@
 
 {% block content %}
 
+<a href="{% url 'polls:add_question' %}" class="btn btn-success mb-5" title="Add a new Question">
+    <i class="fas fa-plus"></i>
+</a>
+
 {% if latest_question_list %}
     <table class="table table-striped ">
         <thead>
             <h3>
                 Question list
-                <a href="/polls:add_question" class="btn btn-success" >
-                    <i class="fas fa-plus"></i></a></h3>
+                </h3>
             <tr>
                 <th>ID</th>
                 <th>Question</th>
                 <th>Number of Answers</th>
-                <th> Action</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>

@@ -1,8 +1,10 @@
 from django.db.models import F
-from django.http import HttpResponseRedirect
+from django.forms import BaseModelForm
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views import generic
+from django.views.generic.edit import CreateView
 
 from .models import Choice, Question
 
@@ -26,9 +28,22 @@ from .models import Choice, Question
 #         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
-class AddQuession(generic.AddQuession):
+# az list hay generic bayad class entekhab koni(createview)
+class AddQuession(generic.CreateView):
     model = Question
+    fields = ["question_text", "pub_date"]
     template_name = "polls/add_question.html"
+    success_url = reverse_lazy('polls:index')  
+
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+      print("valid", form.data)
+      return super().form_valid(form)
+
+
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
+       print("invalid", form.data)
+       return super().form_invalid(form)
 
 
 class IndexView(generic.ListView):
@@ -37,7 +52,7 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """Return the last five published questions."""
-        return Question.objects.order_by("-pub_date")[:5]
+        return Question.objects.order_by("-pub_date")[:20]
 
 
 class DetailView(generic.DetailView):
