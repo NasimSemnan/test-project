@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADD Questions</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>ADD Questions</h2>
+        <form id="questionForm">
+            <div class="form-group">
+                <label for="date">date:</label>
+                <input type="date" class="form-control" id="date" required>
+            </div>
+            <div class="form-group">
+                <label for="time">time:</label>
+                <input type="time" class="form-control" id="time" required>
+            </div>
+            <div class="form-group">
+                <label for="questionText">text:</label>
+                <input type="text" class="form-control" id="questionText" placeholder="سوال خود را اینجا بنویسید" required>
+            </div>
+            <div id="choicesContainer">
+                <div class="form-group">
+                    <label for="choiceText">text choice</label>
+                    <input type="text" class="form-control" name="choiceText" placeholder="گزینه را وارد کنید" required>
+                </div>
+                <div class="form-group">
+                    <label>تعداد رای:</label>
+                    <input type="number" class="form-control" name="votes" value="0" readonly>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="addChoiceButton">add choice</button>
+            <button type="submit" class="btn btn-primary mt-3">submit</button>
+        </form>
+    </div>
+</body>
+</html>
