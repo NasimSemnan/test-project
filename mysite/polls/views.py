@@ -52,7 +52,7 @@ class DeleteQuestion(generic.DeleteView):
 class UpdateQuestion(generic.UpdateView):
     model = Question
     fields = ["question_text", "pub_date"]
-    template_name_suffix = "polls/update_question.html"
+    template_name = "polls/update_question.html"
 
 
 class IndexView(generic.ListView):
