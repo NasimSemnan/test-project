@@ -1,0 +1,12 @@
+{% extends "polls/base.html" %}
+{% block content %}
+
+<h3 class="mb-3">Delete Question</h3>
+
+<form method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ object.question_text }}"?</p>
+    {{ form }}
+    <input type="submit" value="Confirm">
+</form>
+
+{% endblock %}

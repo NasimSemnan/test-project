@@ -25,8 +25,13 @@
                     <td>{{ question.id }}</td>
                     <td><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></td>
                     <td>{{ question.choice_set.count }} </td> <!-- تعداد جواب‌ها -->
-                    <td> <button class="btn btn-primary"><i class="fa fa-edit"></i></button>
-                     <button class="btn btn-danger"><i class="fas fa-trash"></i></button></td>
+                    <td>
+                        <button class="btn btn-primary"><i class="fa fa-edit"></i></button>
+
+                        <a href="{% url 'polls:delete_question' question.id %}" class="btn btn-danger" title="Delete Question">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

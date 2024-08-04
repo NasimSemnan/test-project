@@ -43,6 +43,12 @@ class AddQuession(generic.CreateView):
         return super().form_invalid(form)
 
 
+class DeleteQuestion(generic.DeleteView):
+    model = Question
+    success_url = reverse_lazy("polls:index")
+    template_name = "polls/delete_question.html"
+
+
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"
