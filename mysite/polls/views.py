@@ -49,6 +49,12 @@ class DeleteQuestion(generic.DeleteView):
     template_name = "polls/delete_question.html"
 
 
+class UpdateQuestion(generic.UpdateView):
+    model = Question
+    fields = ["question_text", "pub_date"]
+    template_name_suffix = "polls/update_question.html"
+
+
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"

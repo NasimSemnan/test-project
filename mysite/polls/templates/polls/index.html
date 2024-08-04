@@ -26,7 +26,10 @@
                     <td><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></td>
                     <td>{{ question.choice_set.count }} </td> <!-- تعداد جواب‌ها -->
                     <td>
-                        <button class="btn btn-primary"><i class="fa fa-edit"></i></button>
+
+                        <a href="{% url 'polls:update_question' question.id %}" class="btn btn-primary" title="Update Question">
+                         <i class="fa fa-edit"></i>
+                         </a>
 
                         <a href="{% url 'polls:delete_question' question.id %}" class="btn btn-danger" title="Delete Question">
                             <i class="fas fa-trash"></i>
