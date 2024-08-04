@@ -42,6 +42,9 @@ class AddQuession(generic.CreateView):
         print("invalid", form.data)
         return super().form_invalid(form)
 
+    def get_absolute_url(self):
+        return reverse("polls:detail", args=[str(self.id)])
+
 
 class DeleteQuestion(generic.DeleteView):
     model = Question
@@ -53,6 +56,7 @@ class UpdateQuestion(generic.UpdateView):
     model = Question
     fields = ["question_text", "pub_date"]
     template_name = "polls/update_question.html"
+    success_url = reverse_lazy("polls:index")
 
 
 class IndexView(generic.ListView):

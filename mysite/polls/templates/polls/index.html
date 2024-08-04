@@ -17,6 +17,7 @@
                 <th>Question</th>
                 <th>Number of Answers</th>
                 <th>Action</th>
+                <th>Date</th>
             </tr>
         </thead>
         <tbody>
@@ -25,6 +26,9 @@
                     <td>{{ question.id }}</td>
                     <td><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></td>
                     <td>{{ question.choice_set.count }} </td> <!-- تعداد جواب‌ها -->
+                    <td>
+                        {{ question.pub_date|date:"F j, Y" }}
+                    </td>
                     <td>
 
                         <a href="{% url 'polls:update_question' question.id %}" class="btn btn-primary" title="Update Question">
@@ -35,6 +39,7 @@
                             <i class="fas fa-trash"></i>
                         </a>
                     </td>
+                    
                 </tr>
             {% endfor %}
         </tbody>
