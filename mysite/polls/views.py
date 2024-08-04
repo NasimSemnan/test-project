@@ -4,7 +4,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
-from django.views.generic.edit import CreateView
 
 from .models import Choice, Question
 
@@ -33,17 +32,15 @@ class AddQuession(generic.CreateView):
     model = Question
     fields = ["question_text", "pub_date"]
     template_name = "polls/add_question.html"
-    success_url = reverse_lazy('polls:index')  
-
+    success_url = reverse_lazy("polls:index")
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
-      print("valid", form.data)
-      return super().form_valid(form)
-
+        print("valid", form.data)
+        return super().form_valid(form)
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
-       print("invalid", form.data)
-       return super().form_invalid(form)
+        print("invalid", form.data)
+        return super().form_invalid(form)
 
 
 class IndexView(generic.ListView):
