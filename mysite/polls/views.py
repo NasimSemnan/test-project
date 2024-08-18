@@ -20,6 +20,7 @@ from .models import Choice, Question
 # class DetailView(generic.DetailView):
 #     ...
 
+
 #     def get_queryset(self):
 #         """
 #         Excludes any questions that aren't published yet.
@@ -27,7 +28,11 @@ from .models import Choice, Question
 #         return Question.objects.filter(pub_date__lte=timezone.now())
 
 
-# az list hay generic bayad class entekhab koni(createview)
+class ReadQuestion(generic.DetailView):
+    model = Question
+    template_name = "polls/read_question.html"
+
+
 class AddQuession(generic.CreateView):
     model = Question
     fields = ["question_text", "pub_date"]
@@ -60,7 +65,7 @@ class UpdateQuestion(generic.UpdateView):
 
 
 class IndexView(generic.ListView):
-    template_name = "polls/index.html"
+    template_name = "polls/list_question.html"
     context_object_name = "latest_question_list"
 
     def get_queryset(self):

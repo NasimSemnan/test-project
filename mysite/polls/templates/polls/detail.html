@@ -1,26 +1,30 @@
 {% extends "polls/base.html" %}
 
 {% block content %}
-<div class="form-check ">
-        <div class="col-md-9 ">
-         <form action="{% url 'polls:vote' question.id %}" method="post">
-            {% csrf_token %}
-            <fieldset class="border p-4">
-                <legend class="w-auto "><h1>{{ question.question_text }}</h1></legend>
-                {% if error_message %}
-                <div class="alert alert-danger ">{{ error_message }}</div>
-                
-                <p><strong>{{ error_message }}</strong></p>{% endif %}
-                {% for choice in question.choice_set.all %}
-                <div class="form-check ">
-                    <input type="radio" class="form-check-input" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-                    <label  for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
-                    </div>
-                {% endfor %}
-            </fieldset>
 
-    <button type="submit" class="btn btn-primary mt-4 ">Vote</button>
-    <!-- <input type="submit" value="Vote"> -->
+<div class="form-check ">
+  <div class="col-md-9 ">
+    <form action="{% url 'polls:vote' question.id %}" method="post">
+      {% csrf_token %}
+      <fieldset class="border p-4">
+        <legend class="w-auto ">
+          <h1>{{ question.question_text }}</h1>
+        </legend>
+        {% if error_message %}
+        <div class="alert alert-danger ">{{ error_message }}</div>
+
+        <p><strong>{{ error_message }}</strong></p>{% endif %}
+        {% for choice in question.choice_set.all %}
+        <div class="form-check ">
+          <input type="radio" class="form-check-input" name="choice" id="choice{{ forloop.counter }}"
+            value="{{ choice.id }}">
+          <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+        </div>
+        {% endfor %}
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary mt-4 ">Vote</button>
+      <!-- <input type="submit" value="Vote"> -->
     </form>
   </div>
 </div>

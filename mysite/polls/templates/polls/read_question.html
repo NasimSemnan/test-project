@@ -1,0 +1,11 @@
+{% extends "polls/base.html" %}
+{% block content %}
+
+<h3>Details</h3>
+<p><strong>Id: </strong>{{ object.id }}</p>
+<p><strong>Text: </strong>{{ object.question_text }}</p>
+<p><strong>Publish Date: </strong>{{ object.pub_date|date:"F j, Y" }}</p>
+
+<h3>Choices</h3>
+
+{% endblock %}

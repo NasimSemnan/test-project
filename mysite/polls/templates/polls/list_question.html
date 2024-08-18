@@ -24,7 +24,7 @@
             {% for question in latest_question_list %}
                 <tr>
                     <td>{{ question.id }}</td>
-                    <td><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></td>
+                    <td><a href="{% url 'polls:read_question' question.id %}">{{ question.question_text }}</a></td>
                     <td>{{ question.choice_set.count }} </td> <!-- تعداد جواب‌ها -->
                     <td>
                         {{ question.pub_date|date:"F j, Y" }}

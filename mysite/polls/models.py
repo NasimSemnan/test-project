@@ -43,3 +43,11 @@ class Choice(models.Model):
 
     def __str__(self) -> str:
         return self.choice_text
+
+
+# class Response(models.Model):
+#     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+#     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+#     user = models.CharField(max_length=100)
+#     def __str__(self):
+#         return f"Response to {self.question} by {self.user}"
