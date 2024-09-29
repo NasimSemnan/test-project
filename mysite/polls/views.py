@@ -1,36 +1,99 @@
+from typing import Any
+
+from django import forms
 from django.db.models import F
-from django.forms import BaseModelForm
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.forms import BaseModelForm, ModelForm
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
 from .models import Choice, Question
 
-# # improve
-# def get_queryset(self):
-#     """
-#     Return the last five published questions (not including those set to be
-#     published in the future).
-#     """
-#     return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
+
+class EmptyChoiceForm(forms.Form):
+    title = forms.CharField(max_length=255)
+    description = forms.CharField(widget=forms.Textarea, required=False)
 
 
-# #
-# class DetailView(generic.DetailView):
-#     ...
+class QuestionForm(ModelForm):
+    class Meta:
+        model = Question
+        fields = ["question_text"]
 
 
-#     def get_queryset(self):
-#         """
-#         Excludes any questions that aren't published yet.
-#         """
-#         return Question.objects.filter(pub_date__lte=timezone.now())
+class QuestionChoiceForm(ModelForm):
+    class Meta:
+        model = Choice
+        fields = ["choice_text"]
 
 
 class ReadQuestion(generic.DetailView):
     model = Question
     template_name = "polls/read_question.html"
+
+
+#####
+def create_or_update_question(request):
+    # Initialize empty lists for choices
+    choices = []  # noqa: F841
+
+    if request.method == "POST":
+        # Handle the main QuestionForm
+        question_form = QuestionForm(request.POST)
+
+        # Handle choices from the form (submitted via POST)
+        choice_forms = []
+        total_choices = int(request.POST.get("total_choices", 0))
+        for i in range(total_choices):
+            title = request.POST.get(f"choice_{i}_title", "")
+            description = request.POST.get(f"choice_{i}_description", "")
+            choice_forms.append({"title": title, "description": description})
+
+        # Adding a new choice dynamically
+        if "delete_choice" in request.POST:
+            print("value is:", request.POST["delete_choice"])
+
+        if "add_choice" in request.POST:
+            choice_forms.append({"title": "", "description": ""})  # Add an empty choice
+
+        # Deleting a choice based on its index
+
+        elif "delete_choice" in request.POST:
+            delete_index = int(request.POST["delete_choice"])
+            if 0 <= delete_index < total_choices:
+                del choice_forms[delete_index]
+
+        # Saving the form if the question form is valid
+
+        elif question_form.is_valid():
+            question = question_form.save()
+
+            # Saving choices after the question is saved
+            for choice in choice_forms:
+                if choice["title"] and choice["description"]:  # Only save valid choices
+                    question.choices.create(
+                        title=choice["title"], description=choice["description"]
+                    )
+
+            return redirect("question_detail", pk=question.pk)  # Adjust this as per your URL
+
+    else:
+        question_form = QuestionForm()
+        choice_forms = [{"title": "", "description": ""}]  # Initialize with one empty choice
+
+    # Render the form with existing data
+    return render(
+        request,
+        "polls/add_with_choice.html",
+        {
+            "question_form": question_form,
+            "choice_forms": choice_forms,
+            "total_choices": len(choice_forms),
+        },
+    )
+
+    ####
 
 
 class AddQuession(generic.CreateView):
@@ -49,6 +112,92 @@ class AddQuession(generic.CreateView):
 
     def get_absolute_url(self):
         return reverse("polls:detail", args=[str(self.id)])
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context.update({"choices": [Choice(), Choice()]})
+
+        print(context)
+        return context
+        # print(QuestionChoiceForm(prefix="choice_0_"))
+        # context.update(QuestionChoiceForm(prefix="choice_0_"))
+
+    def get(self, request: HttpRequest, *args: str, **kwargs: reverse_lazy) -> HttpResponse:  # type: ignore
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request: HttpRequest, *args: str, **kwargs: reverse_lazy) -> HttpResponse:  # type: ignore
+        print(self.get_form())
+        return super().post(request, *args, **kwargs)
+
+
+# def add_question_choice(request: HttpRequest, question_id):
+#     question = get_object_or_404(Question, pk=question_id)
+#     # Add an empty choice by adding a new form instance
+#     num_choices = question.choices.count()
+#     new_choice_form = QuestionChoiceForm(prefix=f"choice_{num_choices}")
+
+#     # Process current forms
+#     return render(
+#         request,
+#         "polls/add_with_choice.html",
+#         {
+#             "question_form": QuestionForm(instance=question),
+#             "choice_forms": [
+#                 QuestionChoiceForm(prefix=f"choice_{i}", instance=choice)
+#                 for i, choice in enumerate(question.choices.all())
+#             ]
+#             + [new_choice_form],
+#             "total_choices": len(question.choices),
+#         },
+#     )
+
+
+# def remove_question_choice(request: HttpRequest):
+#     pass
+
+
+# def add_question(request: HttpRequest):
+#     if request.method == "POST":
+#         question_form = QuestionForm(request.POST)
+
+#         # This will hold the list of choice forms
+#         choice_forms = []
+#         for i in range(int(request.POST.get("total_choices", "1"))):
+#             choice_forms.append(QuestionChoiceForm(request.POST, prefix=f"choice_{i}"))
+
+#         # all_choices_valid = True
+#         # for choice_form in choice_forms:
+#         #     if choice_form.is_valid() is False:
+#         #         all_choices_valid = False
+
+#         # if question_form.is_valid() and all_choices_valid:
+#         if question_form.is_valid() and all([cf.is_valid() for cf in choice_forms]):
+#             question = question_form.save()
+
+#             for cf in choice_forms:
+#                 choice = cf.save(commit=False)
+#                 choice.question = question
+#                 choice.save()
+
+#             return redirect(
+#                 "list_question", pk=question.pk
+#             )  # Adjust this as per your URL structure
+#     else:
+#         question_form = QuestionForm()
+#         choice_forms = [
+#             QuestionChoiceForm(prefix="choice_0"),
+#             QuestionChoiceForm(prefix="choice_1"),
+#         ]
+
+#     return render(
+#         request,
+#         "polls/add_with_choice.html",
+#         {
+#             "question_form": question_form,
+#             "choice_forms": choice_forms,
+#             "total_choices": len(choice_forms),
+#         },
+#     )
 
 
 class DeleteQuestion(generic.DeleteView):

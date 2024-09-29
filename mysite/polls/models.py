@@ -18,7 +18,7 @@ class Question(models.Model):
     @admin.display(
         boolean=True,
         ordering="pub_date",
-        description="Published recently?",
+        description="Published recently",
     )
     def was_published_recently(self):
         now = timezone.now()
@@ -39,6 +39,7 @@ class Question(models.Model):
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True)
     choice_text = models.CharField(max_length=200, default="NONE DEFINED")
+    description = models.CharField(max_length=1_000, null=True)
     votes = models.IntegerField(default=0)
 
     def __str__(self) -> str:
