@@ -2,7 +2,7 @@ from typing import Any
 
 from django import forms
 from django.db.models import F
-from django.forms import BaseModelForm, ModelForm
+from django.forms import BaseModelForm, CharField, ModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -11,21 +11,21 @@ from django.views import generic
 from .models import Choice, Question
 
 
-class EmptyChoiceForm(forms.Form):
-    title = forms.CharField(max_length=255)
-    description = forms.CharField(widget=forms.Textarea, required=False)
-
-
 class QuestionForm(ModelForm):
     class Meta:
         model = Question
-        fields = ["question_text"]
+        fields = ["question_text", "pub_date"]
 
 
 class QuestionChoiceForm(ModelForm):
     class Meta:
         model = Choice
-        fields = ["choice_text"]
+        fields = ["choice_text", "description"]
+
+
+class EmptyChoiceForm(forms.Form):
+    choice_text = CharField(max_length=200)
+    description = CharField(max_length=1_000)
 
 
 class ReadQuestion(generic.DetailView):
@@ -33,29 +33,27 @@ class ReadQuestion(generic.DetailView):
     template_name = "polls/read_question.html"
 
 
-#####
 def create_or_update_question(request):
-    # Initialize empty lists for choices
-    choices = []  # noqa: F841
-
     if request.method == "POST":
         # Handle the main QuestionForm
-        question_form = QuestionForm(request.POST)
+        question_form = QuestionForm(data=request.POST)
 
         # Handle choices from the form (submitted via POST)
         choice_forms = []
         total_choices = int(request.POST.get("total_choices", 0))
         for i in range(total_choices):
-            title = request.POST.get(f"choice_{i}_title", "")
+            choice_text = request.POST.get(f"choice_{i}_choice_text", "")
             description = request.POST.get(f"choice_{i}_description", "")
-            choice_forms.append({"title": title, "description": description})
+            choice_forms.append(
+                QuestionChoiceForm(data={"choice_text": choice_text, "description": description})
+            )
 
         # Adding a new choice dynamically
-        if "delete_choice" in request.POST:
-            print("value is:", request.POST["delete_choice"])
+        # if "delete_choice" in request.POST:
+        #     print("value is:", request.POST["delete_choice"])
 
         if "add_choice" in request.POST:
-            choice_forms.append({"title": "", "description": ""})  # Add an empty choice
+            choice_forms.append(EmptyChoiceForm(data={"choice_text": "", "description": ""}))
 
         # Deleting a choice based on its index
 
@@ -64,23 +62,30 @@ def create_or_update_question(request):
             if 0 <= delete_index < total_choices:
                 del choice_forms[delete_index]
 
-        # Saving the form if the question form is valid
+            # Saving the form if the question form is valid
 
         elif question_form.is_valid():
             question = question_form.save()
 
             # Saving choices after the question is saved
-            for choice in choice_forms:
-                if choice["title"] and choice["description"]:  # Only save valid choices
-                    question.choices.create(
-                        title=choice["title"], description=choice["description"]
-                    )
+            for choice_form in choice_forms:
+                # _c_form = QuestionChoiceForm(
+                #     data={"choice_text": choice["choice_text"], "description": choice["description"]}
+                # )
+                if choice_form.is_valid() and not isinstance(
+                    choice_form, EmptyChoiceForm
+                ):  # Only save valid choices
+                    choice_model: Choice = choice_form.save(commit=False)
+                    choice_model.question = question
+                    choice_model.save()
+                    # choice_form.save_m2m()
 
-            return redirect("question_detail", pk=question.pk)  # Adjust this as per your URL
-
+            return redirect("polls:index")  # Adjust this as per your URL
+        else:
+            raise KeyError("Invalid Option!")
     else:
         question_form = QuestionForm()
-        choice_forms = [{"title": "", "description": ""}]  # Initialize with one empty choice
+        choice_forms = [{"choice_text": "", "description": ""}]  # Initialize with one empty choice
 
     # Render the form with existing data
     return render(
@@ -92,8 +97,6 @@ def create_or_update_question(request):
             "total_choices": len(choice_forms),
         },
     )
-
-    ####
 
 
 class AddQuession(generic.CreateView):

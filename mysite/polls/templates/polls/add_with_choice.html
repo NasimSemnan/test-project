@@ -2,44 +2,45 @@
 {% block content %}
 <form method="post">
     {% csrf_token %}
-    <!-- {{ question_form.as_p }} -->
     <div class="form-group">
-    <style> .custom-header {
-        background-color: #072e02; /* رنگ پس‌زمینه */
-        color: #f4f2f2; /* رنگ متن */
-        padding: 10px; /* فاصله داخلی */
-        border-radius: 5px; /* گوشه‌های گرد */
-        text-align: center; /* تراز متن */
-    }
-</style>
-   <h3 class="mb-3 custom-header"> Add a new Question</h3> 
-    <h4><label for="{{ form.question_text.id_for_label }}">{{ form.question_text.label }} Question Text: </label></h4>
-    <input type="text" id="{{ form.question_text.id_for_label }}" class="form-control" name="{{ form.question_text.name }}" />
-   <h4> <label for="{{ form.pub_date.id_for_label }}">{{ form.pub_date.label }} Question Date:</label></h4>
-    <input type="date" id="{{ form.pub_date.id_for_label }}" class="form-control" name="{{ form.pub_date.name }}" /> 
-</div>
-<p>
+        <label for="{{ question_form.question_text.id_for_label }}">{{ question_form.question_text.label }}</label>
+        <input type="text" id="{{ question_form.question_text.id_for_label }}" class="form-control"
+            name="{{ question_form.question_text.name }}" value="{{ question_form.question_text.value }}" />
+        <small id="emailHelp" class="form-text text-muted">This is the Question's title that will be shown to the end
+            users!</small>
+        <ul class="text-danger list-unstyled">
+            {% for error in question_form.question_text.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 
-</p>
+    <div class="form-group">
+        <label for="{{ question_form.pub_date.id_for_label }}">{{ question_form.pub_date.label }}</label>
+        <input type="date" id="{{ question_form.pub_date.id_for_label }}" class="form-control"
+            name="{{ question_form.pub_date.name }}" value="{{ question_form.pub_date.value }}" />
+    </div>
+    <p></p>
+
     <h3>Choices</h3>
     <div id="choices">
         {% for choice in choice_forms %}
-            <div class="choice-form">
-                <label for="choice_{{ forloop.counter0 }}_title">Choice {{ forloop.counter }} Title</label>
-                <input type="text" name="choice_{{ forloop.counter0 }}_title" value="{{ choice.title }}" required>
-                
-                <label for="choice_{{ forloop.counter0 }}_description">Choice {{ forloop.counter }} Description</label>
-                <textarea name="choice_{{ forloop.counter0 }}_description">{{ choice.description }}</textarea>
-                
-                <!-- Button to remove the current choice -->
-                <button type="submit" name="delete_choice" value="{{ forloop.counter0 }}">Delete</button>
-            </div>
+        <div class="choice-form">
+            <label for="choice_{{ forloop.counter0 }}_choice_text">Choice {{ forloop.counter }} Choice Text</label>
+            <input type="text" name="choice_{{ forloop.counter0 }}_choice_text" value="{{ choice.choice_text.value }}">
+
+            <label for="choice_{{ forloop.counter0 }}_description">Choice {{ forloop.counter }} Description</label>
+            <textarea name="choice_{{ forloop.counter0 }}_description">{{ choice.description.value }}</textarea>
+
+            <!-- Button to remove the current choice -->
+            <button type="submit" name="delete_choice" value="{{ forloop.counter0 }}">Delete</button>
+        </div>
         {% endfor %}
     </div>
 
     <!-- Hidden field to track the number of choices -->
 
-    <input type="hidden" name="total_choices" value="{{ total_choices }}" >
+    <input type="hidden" name="total_choices" value="{{ total_choices }}">
 
     <!-- Button to add a new choice -->
     <button type="submit" name="add_choice">Add another choice</button>
