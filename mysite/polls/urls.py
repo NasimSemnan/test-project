@@ -16,11 +16,16 @@ urlpatterns = [
     # ),
     path("questions/add/", views.AddQuession.as_view(), name="add_question"),
     path("questions/<int:pk>/delete", views.DeleteQuestion.as_view(), name="delete_question"),
-    path("questions/<int:pk>/update", views.UpdateQuestion.as_view(), name="update_question"),
+    # path("questions/<int:pk>/update", views.UpdateQuestion.as_view(), name="update_question"),
     path("questions/<int:pk>/read", views.ReadQuestion.as_view(), name="read_question"),
     path(
-        "questions/create_or_update/",
-        views.create_or_update_question,
-        name="create_or_update_question",
+        "questions/create/",
+        views.create_question,
+        name="create_question",
+    ),
+    path(
+        "questions/<int:pk>/update/",
+        views.update_question,
+        name="update_question",
     ),
 ]

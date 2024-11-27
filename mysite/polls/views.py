@@ -20,7 +20,8 @@ class QuestionForm(ModelForm):
 class QuestionChoiceForm(ModelForm):
     class Meta:
         model = Choice
-        fields = ["choice_text", "description"]
+        # fields = "__all__"
+        fields = ["id", "choice_text", "description"]
 
 
 class EmptyChoiceForm(forms.Form):
@@ -33,7 +34,7 @@ class ReadQuestion(generic.DetailView):
     template_name = "polls/read_question.html"
 
 
-def create_or_update_question(request):
+def create_question(request):
     if request.method == "POST":
         # Handle the main QuestionForm
         question_form = QuestionForm(data=request.POST)
@@ -45,7 +46,12 @@ def create_or_update_question(request):
             choice_text = request.POST.get(f"choice_{i}_choice_text", "")
             description = request.POST.get(f"choice_{i}_description", "")
             choice_forms.append(
-                QuestionChoiceForm(data={"choice_text": choice_text, "description": description})
+                QuestionChoiceForm(
+                    data={
+                        "choice_text": choice_text,
+                        "description": description,
+                    }
+                )
             )
 
         # Adding a new choice dynamically
@@ -60,7 +66,12 @@ def create_or_update_question(request):
         elif "delete_choice" in request.POST:
             delete_index = int(request.POST["delete_choice"])
             if 0 <= delete_index < total_choices:
-                del choice_forms[delete_index]
+                if total_choices > 1:
+                    del choice_forms[delete_index]
+                    total_choices -= 1
+                else:
+                    # Optionally, you can show a message that at least one choice must remain
+                    print("Cannot delete the last choice.")
 
             # Saving the form if the question form is valid
 
@@ -69,28 +80,103 @@ def create_or_update_question(request):
 
             # Saving choices after the question is saved
             for choice_form in choice_forms:
+                print("choice form")
                 # _c_form = QuestionChoiceForm(
                 #     data={"choice_text": choice["choice_text"], "description": choice["description"]}
                 # )
                 if choice_form.is_valid() and not isinstance(
                     choice_form, EmptyChoiceForm
                 ):  # Only save valid choices
+                    print("valid form")
                     choice_model: Choice = choice_form.save(commit=False)
                     choice_model.question = question
                     choice_model.save()
                     # choice_form.save_m2m()
 
             return redirect("polls:index")  # Adjust this as per your URL
-        else:
-            raise KeyError("Invalid Option!")
+        # else:
+        #     raise KeyError("Invalid Option!")
     else:
-        question_form = QuestionForm()
+        question_form = QuestionForm(initial={"question_text": ""})
         choice_forms = [{"choice_text": "", "description": ""}]  # Initialize with one empty choice
 
     # Render the form with existing data
     return render(
         request,
         "polls/add_with_choice.html",
+        {
+            "question_form": question_form,
+            "choice_forms": choice_forms,
+            "total_choices": len(choice_forms),
+        },
+    )
+
+
+def update_question(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    question_form = QuestionForm(instance=question)
+
+    # Get existing choices
+    choices = list(Choice.objects.filter(question=question))
+    choice_forms = [QuestionChoiceForm(instance=choice) for choice in choices]
+
+    if request.method == "POST":
+        total_choices = int(request.POST.get("total_choices", 0))
+
+        question_form = QuestionForm(data=request.POST, instance=question)
+
+        # Process updated choices
+        for i in range(total_choices):
+            choice_id = request.POST.get(f"choice_{i}_id", "")
+            choice_text = request.POST.get(f"choice_{i}_choice_text", "")
+            description = request.POST.get(f"choice_{i}_description", "")
+
+            choice_form = next((cf for cf in choice_forms if cf.instance.id == choice_id), None)
+            if choice_form:
+                choice_form.data = {"choice_text": choice_text, "description": description}
+                if choice_form.is_valid():
+                    choice_form.save()
+            else:
+                # Create a new choice
+                choice_form = QuestionChoiceForm(
+                    data={"choice_text": choice_text, "description": description}
+                )
+                choice_form.instance.question = question
+                if choice_form.is_valid():
+                    choice_form.save()
+                choice_forms.append(choice_form)
+
+        # Handle adding a new choice
+        if "add_choice" in request.POST:
+            new_choice_form = QuestionChoiceForm()
+            new_choice_form.instance.question = question
+            choice_forms.append(new_choice_form)
+            total_choices += 1
+
+        # Handle deleting a choice
+        elif "delete_choice" in request.POST:
+            delete_index = int(request.POST["delete_choice"])
+            if 0 <= delete_index < len(choice_forms):
+                if len(choice_forms) > 1:
+                    del choice_forms[delete_index]
+                else:
+                    messages.error(request, "Cannot delete the last choice.")
+                    return redirect("polls:update_question", pk=pk)
+
+        # Save the question and choices
+        if question_form.is_valid():
+            question = question_form.save()
+
+            # Save choices after the question is saved
+            valid_choice_forms = [cf for cf in choice_forms if cf.is_valid()]
+            Choice.objects.filter(question=question).delete()
+            Choice.objects.bulk_create([cf.instance for cf in valid_choice_forms])
+
+            return redirect("polls:index")
+
+    return render(
+        request,
+        "polls/update_question.html",
         {
             "question_form": question_form,
             "choice_forms": choice_forms,
