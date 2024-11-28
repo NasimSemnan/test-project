@@ -1,8 +1,9 @@
 from typing import Any
 
 from django import forms
+from django.conf import settings
 from django.db.models import F
-from django.forms import BaseModelForm, CharField, ModelForm
+from django.forms import BaseModelForm, CharField, DateField, ModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -15,18 +16,50 @@ class QuestionForm(ModelForm):
     class Meta:
         model = Question
         fields = ["question_text", "pub_date"]
+        widgets = {
+            "pub_date": forms.DateInput(
+                format=("%Y-%m-%d"),
+                attrs={"class": "form-control", "placeholder": "Select a date", "type": "date"},
+            ),
+        }
+        labels = {"pub_date": "Published Date"}
 
 
 class QuestionChoiceForm(ModelForm):
     class Meta:
         model = Choice
-        # fields = "__all__"
         fields = ["id", "choice_text", "description"]
+        widgets = {
+            "choice_text": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "text", "type": "text"},
+            ),
+            "description": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Description",
+                    "type": "text",
+                    "rows": 2,
+                },
+            ),
+        }
+        labels = {"choice_text": "Text", "description": "Description"}
 
 
 class EmptyChoiceForm(forms.Form):
-    choice_text = CharField(max_length=200)
-    description = CharField(max_length=1_000)
+    choice_text = CharField(
+        max_length=200,
+        label="Text",
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Text", "type": "text"},
+        ),
+    )
+    description = CharField(
+        max_length=1_000,
+        label="Description",
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "placeholder": "Description", "type": "text", "rows": 2}
+        ),
+    )
 
 
 class ReadQuestion(generic.DetailView):
@@ -112,65 +145,89 @@ def create_question(request):
     )
 
 
-def update_question(request, pk):
+def update_question(request: HttpRequest, pk):
     question = get_object_or_404(Question, pk=pk)
+    choices = list(Choice.objects.filter(question=question))
+    
     question_form = QuestionForm(instance=question)
 
-    # Get existing choices
-    choices = list(Choice.objects.filter(question=question))
-    choice_forms = [QuestionChoiceForm(instance=choice) for choice in choices]
+    if request.method == "GET":
+        # Get existing choices
+        choice_forms = [QuestionChoiceForm(instance=choice) for choice in choices]
 
-    if request.method == "POST":
-        total_choices = int(request.POST.get("total_choices", 0))
-
+    elif request.method == "POST":
         question_form = QuestionForm(data=request.POST, instance=question)
 
-        # Process updated choices
-        for i in range(total_choices):
-            choice_id = request.POST.get(f"choice_{i}_id", "")
-            choice_text = request.POST.get(f"choice_{i}_choice_text", "")
-            description = request.POST.get(f"choice_{i}_description", "")
+        total_choices = int(request.POST.get("total_choices", 0))
 
-            choice_form = next((cf for cf in choice_forms if cf.instance.id == choice_id), None)
-            if choice_form:
-                choice_form.data = {"choice_text": choice_text, "description": description}
-                if choice_form.is_valid():
-                    choice_form.save()
-            else:
-                # Create a new choice
-                choice_form = QuestionChoiceForm(
-                    data={"choice_text": choice_text, "description": description}
+        choice_forms: list[QuestionChoiceForm] = []
+
+        choice_ids = request.POST.getlist("choice_id", default=[])
+        choice_texts = request.POST.getlist("choice_text", default=[])
+        descriptions = request.POST.getlist("description", default=[])
+        for i in range(total_choices):
+            choice_id = choice_ids[i]
+            choice_text = choice_texts[i]
+            description = descriptions[i]
+
+            choice_forms.append(
+                QuestionChoiceForm(
+                    data={
+                        "id": choice_id,
+                        "choice_text": choice_text,
+                        "description": description,
+                    }
                 )
-                choice_form.instance.question = question
-                if choice_form.is_valid():
-                    choice_form.save()
-                choice_forms.append(choice_form)
+            )
 
         # Handle adding a new choice
         if "add_choice" in request.POST:
-            new_choice_form = QuestionChoiceForm()
-            new_choice_form.instance.question = question
-            choice_forms.append(new_choice_form)
-            total_choices += 1
+            choice_forms.append(EmptyChoiceForm(data={"choice_text": "", "description": ""}))
 
         # Handle deleting a choice
         elif "delete_choice" in request.POST:
             delete_index = int(request.POST["delete_choice"])
-            if 0 <= delete_index < len(choice_forms):
-                if len(choice_forms) > 1:
+            if 0 <= delete_index < total_choices:
+                if total_choices > 1:
+                    # remove the choice form
                     del choice_forms[delete_index]
+                    total_choices -= 1
                 else:
-                    messages.error(request, "Cannot delete the last choice.")
-                    return redirect("polls:update_question", pk=pk)
+                    # Optionally, you can show a message that at least one choice must remain
+                    print("Cannot delete the last choice.")
 
         # Save the question and choices
-        if question_form.is_valid():
+        elif question_form.is_valid():
             question = question_form.save()
 
             # Save choices after the question is saved
-            valid_choice_forms = [cf for cf in choice_forms if cf.is_valid()]
-            Choice.objects.filter(question=question).delete()
-            Choice.objects.bulk_create([cf.instance for cf in valid_choice_forms])
+            choice_ids = request.POST.getlist("choice_id", default=[])
+            choice_texts = request.POST.getlist("choice_text", default=[])
+            descriptions = request.POST.getlist("description", default=[])
+
+            # add or update
+            for i in range(total_choices):
+                choice_id = choice_ids[i]
+                choice_text = choice_texts[i]
+                description = descriptions[i]
+
+                choice = next(
+                    (cf for cf in choices if cf.pk == (int(choice_id) if choice_id else None)),
+                    None,
+                )
+                choice_form = QuestionChoiceForm(
+                    instance=choice, data={"choice_text": choice_text, "description": description}
+                )
+
+                if choice_form.is_valid():
+                    choice_model: Choice = choice_form.save(commit=False)
+                    choice_model.question = question
+                    choice_model.save()
+
+            to_be_deleted = [c for c in choices if filter(lambda x: c.pk == x, choice_ids)]
+            if len(to_be_deleted):
+                for c in to_be_deleted:
+                    c.delete()
 
             return redirect("polls:index")
 

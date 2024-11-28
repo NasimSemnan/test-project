@@ -18,21 +18,21 @@
 
         <div class="mb-3">
             <label for="{{ question_form.pub_date.id_for_label }}" class="form-label">{{ question_form.pub_date.label }}</label>
-            <input type="date" id="{{ question_form.pub_date.id_for_label }}" class="form-control"
-                name="{{ question_form.pub_date.name }}" value="{{ question_form.pub_date.value|date:'Y-m-d' }}" />
+            {{ question_form.pub_date }}
+            {{ question_form.pub_date.errors }}
         </div>
 
         <h3>Choices</h3>
         <div id="choices">
             {% for choice in choice_forms %}
             <div class="choice-form mb-3 border p-3 rounded">
-                <input type="hidden" name="choice_{{ forloop.counter0 }}_id" class="form-control" value="{{ choice.initial.id }}">
+                <input type="hidden" name="choice_id" class="form-control" value="{{ choice.initial.id }}">
 
-                <label for="choice_{{ forloop.counter0 }}_choice_text" class="form-label">Choice {{ forloop.counter }} Choice Text</label>
-                <input type="text" name="choice_{{ forloop.counter0 }}_choice_text" class="form-control" value="{{ choice.choice_text.value }}">
+                <label for="{{ choice.choice_text.id_for_label }}" class="form-label">{{ choice.choice_text.label }}</label>
+                {{ choice.choice_text }}
 
-                <label for="choice_{{ forloop.counter0 }}_description" class="form-label">Choice {{ forloop.counter }} Description</label>
-                <textarea name="choice_{{ forloop.counter0 }}_description" class="form-control">{{ choice.description.value }}</textarea>
+                <label for="{{ choice.description.id_for_label }}" class="form-label">{{ choice.description.label }}</label>
+                {{ choice.description }}
 
                 <!-- Button to remove the current choice -->
                 <button type="submit" name="delete_choice" value="{{ forloop.counter0 }}" class="btn btn-danger mt-2">Delete</button>
