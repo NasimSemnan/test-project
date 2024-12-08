@@ -1,9 +1,8 @@
 from typing import Any
 
 from django import forms
-from django.conf import settings
 from django.db.models import F
-from django.forms import BaseModelForm, CharField, DateField, ModelForm
+from django.forms import BaseModelForm, CharField, ModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -148,23 +147,22 @@ def create_question(request):
 def update_question(request: HttpRequest, pk):
     question = get_object_or_404(Question, pk=pk)
     choices = list(Choice.objects.filter(question=question))
-    
+
     question_form = QuestionForm(instance=question)
 
     if request.method == "GET":
-        # Get existing choices
         choice_forms = [QuestionChoiceForm(instance=choice) for choice in choices]
 
     elif request.method == "POST":
         question_form = QuestionForm(data=request.POST, instance=question)
 
         total_choices = int(request.POST.get("total_choices", 0))
-
         choice_forms: list[QuestionChoiceForm] = []
 
         choice_ids = request.POST.getlist("choice_id", default=[])
         choice_texts = request.POST.getlist("choice_text", default=[])
         descriptions = request.POST.getlist("description", default=[])
+
         for i in range(total_choices):
             choice_id = choice_ids[i]
             choice_text = choice_texts[i]
@@ -189,45 +187,51 @@ def update_question(request: HttpRequest, pk):
             delete_index = int(request.POST["delete_choice"])
             if 0 <= delete_index < total_choices:
                 if total_choices > 1:
-                    # remove the choice form
                     del choice_forms[delete_index]
                     total_choices -= 1
                 else:
-                    # Optionally, you can show a message that at least one choice must remain
                     print("Cannot delete the last choice.")
 
         # Save the question and choices
         elif question_form.is_valid():
             question = question_form.save()
 
-            # Save choices after the question is saved
-            choice_ids = request.POST.getlist("choice_id", default=[])
-            choice_texts = request.POST.getlist("choice_text", default=[])
-            descriptions = request.POST.getlist("description", default=[])
+            # Create a set of existing choice IDs New
+            existing_choice_ids = {choice.pk for choice in choices}
 
-            # add or update
+            # Add or update choices line 1 new
+            new_choice_ids = set()
             for i in range(total_choices):
                 choice_id = choice_ids[i]
                 choice_text = choice_texts[i]
                 description = descriptions[i]
 
-                choice = next(
-                    (cf for cf in choices if cf.pk == (int(choice_id) if choice_id else None)),
-                    None,
-                )
+                choice = Choice.objects.filter(pk=choice_id).first() if choice_id else None
                 choice_form = QuestionChoiceForm(
-                    instance=choice, data={"choice_text": choice_text, "description": description}
+                    data={"choice_text": choice_text, "description": description}, instance=choice
                 )
 
                 if choice_form.is_valid():
-                    choice_model: Choice = choice_form.save(commit=False)
-                    choice_model.question = question
-                    choice_model.save()
+                    if choice:
+                        choice.choice_text = choice_text
+                        choice.description = description
+                        choice.save()
+                    else:
+                        choice_model: Choice = choice_form.save(commit=False)
+                        choice_model.question = question
+                        choice_model.save()
+                        choice_form.save_m2m()
 
-            to_be_deleted = [c for c in choices if filter(lambda x: c.pk == x, choice_ids)]
-            if len(to_be_deleted):
-                for c in to_be_deleted:
-                    c.delete()
+                # Add the choice ID to the new_choice_ids set
+                if choice_id:
+                    new_choice_ids.add(int(choice_id))
+
+            # all choices to delete and save
+            to_be_deleted = existing_choice_ids - new_choice_ids
+
+            # Delete choices that are no longer in the form
+            for choice_id in to_be_deleted:
+                Choice.objects.filter(pk=choice_id).delete()
 
             return redirect("polls:index")
 
