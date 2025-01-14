@@ -24,16 +24,11 @@
         </div>
 
         <div class="mb-3">
-            <label for="{{ poll_form.pub_date.id_for_label }}" class="form-label">{{ poll_form.pub_date.label }}</label>
-            {{ poll_form.pub_date }}
-            {{ poll_form.pub_date.errors }}
+            <label for="{{ poll_form.questions.id_for_label }}" class="form-label">{{ poll_form.questions.label }}</label>
+            {{ poll_form.questions }}
+            {{ poll_form.questions.errors }}
         </div>
 
-
-        
-
-
-        
         <!-- <h3>Choices</h3>
         <div id="choices">
             {% for choice in choice_forms %}

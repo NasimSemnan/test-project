@@ -40,6 +40,7 @@ class Poll(models.Model):
     title = models.CharField(max_length=200, default="NONE DEFINED")
     description = models.CharField(max_length=1_000, null=True, blank=True)
     pub_date = models.DateTimeField("date published")
+    questions = models.ManyToManyField(Question, default="[]")
 
     def __str__(self) -> str:
         return self.title

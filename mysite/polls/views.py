@@ -130,9 +130,6 @@ def create_question(request):
             # Saving choices after the question is saved
             for choice_form in choice_forms:
                 print("choice form")
-                # _c_form = QuestionChoiceForm(
-                #     data={"choice_text": choice["choice_text"], "description": choice["description"]}
-                # )
                 if choice_form.is_valid() and not isinstance(
                     choice_form, EmptyChoiceForm
                 ):  # Only save valid choices
