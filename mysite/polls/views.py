@@ -22,7 +22,7 @@ class QuestionForm(ModelForm):
                 attrs={"class": "form-control", "placeholder": "Select a date", "type": "date"},
             ),
             "question_text": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "text", "type": "text"},
+                attrs={"class": "form-control", "placeholder": "Title", "type": "text"},
             ),
             "description": forms.TextInput(
                 attrs={
@@ -48,7 +48,7 @@ class QuestionChoiceForm(ModelForm):
         fields = ["id", "choice_text", "description"]
         widgets = {
             "choice_text": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "text", "type": "text"},
+                attrs={"class": "form-control", "placeholder": "Titel", "type": "text"},
             ),
             "description": forms.TextInput(
                 attrs={
@@ -94,7 +94,7 @@ def create_question(request):
         choice_forms = []
         total_choices = int(request.POST.get("total_choices", 0))
         descriptions = request.POST.getlist("choice-description", default=[])
-        choice_texts = request.POST.getlist("choice-texts", default=[])
+        choice_texts = request.POST.getlist("choice-choice_text", default=[])
         for i in range(total_choices):
             choice_forms.append(
                 QuestionChoiceForm(
@@ -175,6 +175,8 @@ def update_question(request: HttpRequest, pk):
         question_form = QuestionForm(data=request.POST, instance=question)
 
         total_choices = int(request.POST.get("total_choices", 0))
+        descriptions = request.POST.getlist("choice-description", default=[])
+        choice_texts = request.POST.getlist("choice-texts", default=[])
         choice_forms: list[QuestionChoiceForm] = []
 
         choice_ids = request.POST.getlist("choice-choice_id", default=[])

@@ -11,7 +11,7 @@ class PollForm(ModelForm):
     is_first_load = True
     prefix = "poll"
     questions = forms.ModelMultipleChoiceField(
-        queryset=Question.objects.all(), widget=forms.CheckboxSelectMultiple, required=False
+        queryset=Question.objects.all(), widget=forms.CheckboxSelectMultiple, required=True
     )
 
     class Meta:
@@ -23,7 +23,7 @@ class PollForm(ModelForm):
                 attrs={"class": "form-control", "placeholder": "Select a date", "type": "date"},
             ),
             "title": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "text", "type": "text"},
+                attrs={"class": "form-control", "placeholder": "Title", "type": "text"},
             ),
             "description": forms.TextInput(
                 attrs={
@@ -34,7 +34,7 @@ class PollForm(ModelForm):
                 },
             ),
             "questions": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "text", "type": "text"},
+                attrs={"class": "form-control", "placeholder": "Title", "type": "text"},
             ),
         }
         labels = {
@@ -59,7 +59,7 @@ def create_poll(request):
         poll_form = PollForm(data=request.POST)
         if poll_form.is_valid():
             try:
-                poll = poll_form.save(commit=False)
+                poll: Poll = poll_form.save(commit=False)
                 poll.save()
                 poll.questions.set(poll_form.cleaned_data["questions"])
                 poll.save()
@@ -73,7 +73,7 @@ def create_poll(request):
 
     return render(
         request,
-        "polls/poll/creat_poll.html",
+        "polls/poll/create_poll.html",
         {
             "poll_form": poll_form,
         },

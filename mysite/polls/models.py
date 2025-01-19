@@ -28,7 +28,7 @@ class Question(models.Model):
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True)
-    choice_text = models.CharField(max_length=200, default="NONE DEFINED")
+    choice_text = models.CharField(max_length=200, default="")
     description = models.CharField(max_length=1_000, null=True, blank=True)
     votes = models.IntegerField(default=0)
 
@@ -37,10 +37,10 @@ class Choice(models.Model):
 
 
 class Poll(models.Model):
-    title = models.CharField(max_length=200, default="NONE DEFINED")
+    title = models.CharField(max_length=200, default="")
     description = models.CharField(max_length=1_000, null=True, blank=True)
     pub_date = models.DateTimeField("date published")
-    questions = models.ManyToManyField(Question, default="[]")
+    questions = models.ManyToManyField(Question)
 
     def __str__(self) -> str:
         return self.title
