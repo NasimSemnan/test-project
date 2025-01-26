@@ -27,4 +27,5 @@ urlpatterns = [
         poll_views.create_poll,
         name="create_poll",
     ),
+    path("polls/<int:pk>/delete", poll_views.DeletePoll.as_view(), name="delete_poll"),
 ]

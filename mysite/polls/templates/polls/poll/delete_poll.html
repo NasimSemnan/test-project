@@ -1,0 +1,14 @@
+{% extends "polls/base.html" %}
+{% block content %}
+
+<h3 class="mb-3">Delete Poll</h3>
+
+<form method="post">{% csrf_token %}
+    <p> Are you sure you want to delete"<b> {{ object.question_text }}"?</b></p>
+    <p><b>Published on:</b> {{ object.pub_date|date:"F j, Y" }}</p>
+    {{ form }}
+    <input type="submit" class="btn btn-primary btn-lg" value="Confirm">
+    
+</form>
+
+{% endblock %}

@@ -2,6 +2,7 @@ from django import forms
 from django.db import IntegrityError
 from django.forms import ModelForm
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
 from django.views import generic
 
 from .models import Poll, Question
@@ -13,10 +14,17 @@ class PollForm(ModelForm):
     questions = forms.ModelMultipleChoiceField(
         queryset=Question.objects.all(), widget=forms.CheckboxSelectMultiple, required=True
     )
+    total_questions = forms.IntegerField(
+        label="Total Questions",
+        required=False,
+        initial=Question.objects.count(),
+        widget=forms.NumberInput(attrs={"class": "form-control", "readonly": "readonly"}),
+    )
 
     class Meta:
         model = Poll
         fields = ["title", "description", "pub_date", "questions"]
+
         widgets = {
             "pub_date": forms.DateInput(
                 format=("%Y-%m-%d"),
@@ -33,16 +41,20 @@ class PollForm(ModelForm):
                     "rows": 2,
                 },
             ),
-            "questions": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Title", "type": "text"},
-            ),
         }
-        labels = {
-            "title": "Title",
-            "description": "Description",
-            "pub_date": "Published Date",
-            "questions": "Questions",
-        }
+
+
+class UpdatePoll(generic.UpdateView):
+    model = Question
+    fields = ["question_text", "pub_date"]
+    template_name = "polls/update_poll.html"
+    success_url = reverse_lazy("polls:index")
+
+
+class DeletePoll(generic.DeleteView):
+    model = Question
+    template_name = "polls/delete_poll.html"
+    success_url = reverse_lazy("polls:index")
 
 
 class PollIndexView(generic.ListView):
@@ -50,7 +62,6 @@ class PollIndexView(generic.ListView):
     context_object_name = "latest_poll_list"
 
     def get_queryset(self):
-        """Return the last five published questions."""
         return Poll.objects.order_by("-id")[:20]
 
 
@@ -68,8 +79,7 @@ def create_poll(request):
                 return render(request, "polls/poll/create_poll.html", {"poll_form": poll_form})
 
     else:
-        poll_form = PollForm()
-        # poll_form = PollForm(data={"title": "", "date": "", "description": "", "questions": ""})
+        poll_form = PollForm(initial={"total_questions": Question.objects.count()})
 
     return render(
         request,

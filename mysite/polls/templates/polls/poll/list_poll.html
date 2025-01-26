@@ -15,8 +15,8 @@
         <tr>
             <th>ID</th>
             <th>Title</th>
-            <!-- <th>Number of Answers</th> -->
             <th>Published At</th>
+            <th>Number of Questions</th> 
             <th>Action</th>
         </tr>
     </thead>
@@ -29,10 +29,11 @@
             <td>
                 {{ poll.pub_date|date:"F j, Y" }}
             </td>
-            <!-- <td>{{ question.choice_set.count }} </td> تعداد جواب‌ها -->
-
+            
+            <td>{{ poll.questions.count }} </td> 
+        
             <td>
-                <a href="#" class="btn btn-primary" title="Update Question">
+                <a href="{% url 'polls:delete_poll' poll.id %}" class="btn btn-primary" title="Update Question">
                     <i class="fa fa-edit"></i>
                 </a>
 

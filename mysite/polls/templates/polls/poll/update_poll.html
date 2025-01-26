@@ -1,0 +1,56 @@
+{% extends "polls/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Update Poll (Id={{question_id}})</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="{{ question_form.question_text.id_for_label }}" class="form-label">{{ question_form.question_text.label }}</label>
+            {{question_form.question_text}}
+            {{question_form.question_text.errors}}
+            </ul>
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ question_form.description.id_for_label }}" class="form-label">{{ question_form.description.label }}</label>
+            {{question_form.description}}
+            {{question_form.description.errors}}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ question_form.pub_date.id_for_label }}" class="form-label">{{ question_form.pub_date.label }}</label>
+            {{ question_form.pub_date }}
+            {{ question_form.pub_date.errors }}
+        </div>
+
+        <h3>Choices</h3>
+        <div id="choices">
+            {% for choice in choice_forms %}
+            <div class="choice-form mb-3 border p-3 rounded">
+                <input type="hidden" name="choice-choice_id" class="form-control" value="{{ choice.initial.id }}">
+
+                <label for="{{ choice.choice_text.id_for_label }}" class="form-label">{{ choice.choice_text.label }}</label>
+                {{ choice.choice_text }}
+                {{ choice.choice_text.errors }}
+
+                <label for="{{ choice.description.id_for_label }}" class="form-label">{{ choice.description.label }}</label>
+                {{ choice.description }}
+                {{ choice.description.errors }}
+
+                <!-- Button to remove the current choice -->
+                <button type="submit" name="delete_choice" value="{{ forloop.counter0 }}" class="btn btn-danger mt-2">Delete</button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <input type="hidden" name="total_choices" value="{{ total_choices }}">
+
+        <!-- Button to add a new choice -->
+        <button type="submit" name="add_choice" class="btn btn-primary">Add another choice</button>
+
+        <!-- Submit the question and all choices -->
+        <button type="submit" class="btn btn-success">Save Question</button>
+    </form>
+</div>
+{% endblock %}
