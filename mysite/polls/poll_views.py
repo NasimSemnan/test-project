@@ -17,9 +17,12 @@ class PollForm(ModelForm):
     total_questions = forms.IntegerField(
         label="Total Questions",
         required=False,
-        initial=Question.objects.count(),
         widget=forms.NumberInput(attrs={"class": "form-control", "readonly": "readonly"}),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['total_questions'].initial = Question.objects.count()
 
     class Meta:
         model = Poll
